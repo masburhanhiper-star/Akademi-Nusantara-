@@ -1,0 +1,12 @@
+{
+  "name": "Akademi Nusantara 3D Online",
+  "short_name": "Akademi 3D",
+  "description": "Game open world 3D akademi fiksi dengan multiplayer online.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#101d35",
+  "theme_color": "#101d35",
+  "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}

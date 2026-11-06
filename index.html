@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Akademi Nusantara 3D Online</title>
+<link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#101d35"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><link rel="icon" href="/icon.svg" type="image/svg+xml">
+<style>
+:root{--gold:#e8c36e;--navy:#101d35}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#9bc6dc;font-family:system-ui,Arial;color:#fff}
+canvas{display:block}#hud{position:fixed;inset:0;pointer-events:none}
+.top{position:absolute;left:14px;top:12px;background:#101d35dd;border:1px solid #e8c36e77;border-radius:12px;padding:10px 13px;min-width:190px;backdrop-filter:blur(8px)}
+.top b{letter-spacing:1px;color:var(--gold)}.top small{display:block;color:#d9e3ef;font-size:11px;margin-top:3px}
+#mission{position:absolute;top:12px;right:14px;max-width:250px;background:#101d35dd;border-radius:12px;padding:11px 13px;font-size:12px;line-height:1.5}
+#mission strong{color:var(--gold);display:block;font-size:13px}
+#hint{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);background:#101d35cc;padding:9px 14px;border-radius:20px;font-size:12px;text-align:center;white-space:nowrap}
+#interact{position:absolute;bottom:70px;right:18px;pointer-events:auto;border:0;background:var(--gold);color:#211b10;font-weight:900;padding:15px 19px;border-radius:50px;display:none}
+#mobile{position:absolute;bottom:18px;left:15px;display:none;pointer-events:auto;gap:8px}
+#mobile button{width:48px;height:48px;border:1px solid #ffffff66;border-radius:13px;background:#101d35bb;color:white;font-size:20px}
+#look{position:absolute;bottom:20px;right:16px;display:none;pointer-events:auto;color:#fff;background:#101d35aa;padding:10px;border-radius:12px;font-size:11px}
+#panel{position:fixed;inset:0;display:grid;place-items:center;background:#071426b8;padding:16px;z-index:5}
+.dialog{width:min(500px,100%);max-height:92vh;overflow:auto;background:#f4f1e8;color:#172238;border-radius:18px;padding:22px;box-shadow:0 20px 60px #0006}
+.dialog h1{margin:0 0 5px;font-size:25px;color:#142746}.sub{color:#657185;font-size:13px;line-height:1.5}
+label{display:block;font-weight:750;font-size:12px;margin:12px 0 4px}input,select{width:100%;padding:11px;border:1px solid #cbd3dd;border-radius:9px;font:inherit;background:white;color:#172238}
+button.primary{border:0;border-radius:10px;background:#182e4e;color:white;padding:12px 17px;font-weight:850;cursor:pointer;margin-top:14px;width:100%}
+#toast{position:fixed;left:50%;top:22%;transform:translate(-50%,-50%);background:#10233ddd;border:1px solid #e8c36e;color:white;padding:12px 18px;border-radius:12px;display:none;z-index:4;text-align:center;max-width:85%}
+#online{position:absolute;left:14px;top:106px;background:#10233dcc;border-radius:10px;padding:7px 10px;font-size:11px}#chatbox{position:fixed;right:12px;bottom:75px;width:min(290px,78vw);background:#101d35eF;border:1px solid #e8c36e88;border-radius:12px;padding:10px;z-index:3;display:none;pointer-events:auto}#chatlog{height:115px;overflow:auto;font-size:11px;line-height:1.5;color:#edf2f7;margin-bottom:8px}#chatrow{display:flex;gap:5px}#chatrow input{min-width:0;flex:1;padding:8px;border-radius:8px;border:0}#chatrow button,#chatToggle{border:0;border-radius:8px;padding:8px 10px;background:#e8c36e;color:#172238;font-weight:800}#chatToggle{position:absolute;right:14px;bottom:18px;pointer-events:auto}#maptag{position:absolute;left:14px;bottom:16px;background:#10233dbb;border-radius:10px;padding:8px 11px;font-size:11px}
+@media(max-width:700px){#mobile{display:grid;grid-template-columns:repeat(3,48px)}#look{display:block}#hint{bottom:88px;font-size:10px}#mission{max-width:175px;font-size:10px}.top{min-width:145px}.top b{font-size:12px}}
+</style>
+</head>
+<body>
+<div id="hud">
+ <div class="top"><b>⚜ AKADEMI NUSANTARA 3D</b><small id="playerline">Taruna • AKMIL</small><small id="scoreline">Prestasi: 0 | Pangkat: Calon Taruna</small></div>
+ <div id="online">🟡 Menghubungkan server...</div>
+ <div id="mission"><strong>🎯 MISI AKTIF</strong><span id="missiontext">Jelajahi kampus dan kunjungi Lapangan Utama.</span></div>
+ <div id="maptag">🧭 W A S D: Bergerak • Mouse: Lihat</div>
+ <div id="hint">Dekati penanda emas untuk berinteraksi</div>
+ <button id="interact">INTERAKSI</button>
+ <div id="mobile">
+  <span></span><button data-key="w">▲</button><span></span>
+  <button data-key="a">◀</button><button data-key="s">▼</button><button data-key="d">▶</button>
+ </div><div id="look">Geser layar untuk melihat sekitar</div>
+</div>
+<div id="toast"></div><div id="chatbox"><div id="chatlog">Chat global akademi siap.</div><div id="chatrow"><input id="chatmsg" maxlength="180" placeholder="Tulis pesan..."><button id="sendchat">Kirim</button></div></div>
+<div id="panel"><div class="dialog">
+<h1>AKADEMI NUSANTARA 3D</h1><div class="sub">Game open world 3D — jelajahi area akademi, kunjungi fasilitas, selesaikan tantangan, dan naik pangkat. Dunia dan karakter bersifat fiksi.</div>
+<label>Nama karakter</label><input id="pname" maxlength="24" placeholder="Nama taruna">
+<label>Usia karakter</label><input id="page" type="number" min="15" max="40" value="18">
+<label>Pilih akademi</label><select id="branch"><option>AKMIL</option><option>AKPOL</option></select>
+<label>Pilih karakter</label><select id="avatar"><option value="1">Model 1 — Taruna</option><option value="2">Model 2 — Taruni</option><option value="3">Model 3 — Taruna</option><option value="4">Model 4 — Taruni</option><option value="5">Model 5 — Taruna</option><option value="6">Model 6 — Taruna</option></select>
+<button class="primary" id="start">MASUK KE AKADEMI ▶</button>
+<p class="sub">Kontrol komputer: WASD untuk berjalan, mouse untuk melihat, E untuk interaksi, Esc untuk melepas kursor. Ponsel: tombol arah dan geser layar.</p>
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/three.min.js"></script>
+<script>
+(()=>{
+const $=id=>document.getElementById(id);
+if(!window.THREE){$('missiontext').textContent='Tidak dapat memuat mesin 3D. Periksa koneksi internet lalu muat ulang.';return}
+let scene,camera,renderer,player,clock,keys={},yaw=0,pitch=0,started=false,score=0,done=new Set(),near=null,mouseDown=false,lastX=0,lastY=0;
+let socket=null,remotePlayers=new Map(),lastNet=0,playerName="Taruna",playerBranch="AKMIL",playerAvatar="1",serverOnline=false;
+const targets=[],world=[];
+const mats={grass:new THREE.MeshStandardMaterial({color:0x63865c}),path:new THREE.MeshStandardMaterial({color:0xc8b995}),wall:new THREE.MeshStandardMaterial({color:0xd9d5c8}),roof:new THREE.MeshStandardMaterial({color:0x293d54}),gold:new THREE.MeshStandardMaterial({color:0xe6bd62,emissive:0x684714,emissiveIntensity:.5}),dark:new THREE.MeshStandardMaterial({color:0x26384d}),white:new THREE.MeshStandardMaterial({color:0xf0eee4}),tree:new THREE.MeshStandardMaterial({color:0x315f43}),skin:new THREE.MeshStandardMaterial({color:0xc98e68}),uniform:new THREE.MeshStandardMaterial({color:0x243b59}),red:new THREE.MeshStandardMaterial({color:0x9d3f39})};
+function box(x,y,z,sx,sy,sz,mat){let m=new THREE.Mesh(new THREE.BoxGeometry(sx,sy,sz),mat);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;scene.add(m);world.push(m);return m}
+function cylinder(x,y,z,r1,r2,h,mat){let m=new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,h,12),mat);m.position.set(x,y,z);m.castShadow=true;scene.add(m);return m}
+function building(x,z,w,d,h,name,accent=0x293d54){
+ box(x,h/2,z,w,h,d,mats.wall);box(x,h+.13,z,w+.4,.26,d+.4,new THREE.MeshStandardMaterial({color:accent}));
+ for(let i=-Math.floor(w/3);i<=Math.floor(w/3);i++)for(let y=1.3;y<h-0.5;y+=1.35)box(x+i*2,y,z-d/2-.015,.8,.75,.06,new THREE.MeshStandardMaterial({color:0x54738a,roughness:.3}));
+ box(x,h*.48,z-d/2-.12,1.7,h*.72,.18,mats.dark);box(x,h+.6,z, w*.35,.35,d*.35,mats.gold);
+ const sign=box(x,h+1.1,z-d/2-.2,Math.min(w*.75,7),.55,.18,mats.dark);
+ const canvas=document.createElement('canvas');canvas.width=512;canvas.height=96;let ctx=canvas.getContext('2d');ctx.fillStyle='#172b48';ctx.fillRect(0,0,512,96);ctx.fillStyle='#f0ce80';ctx.font='bold 35px Arial';ctx.textAlign='center';ctx.fillText(name,256,62);let tex=new THREE.CanvasTexture(canvas);let board=new THREE.Mesh(new THREE.PlaneGeometry(Math.min(w*.75,7),.55),new THREE.MeshBasicMaterial({map:tex}));board.position.set(x,h+1.1,z-d/2-.305);scene.add(board);
+}
+function tree(x,z){cylinder(x,.9,z,.18,.25,1.8,mats.dark);let crown=new THREE.Mesh(new THREE.SphereGeometry(1.05,9,8),mats.tree);crown.position.set(x,2.25,z);crown.castShadow=true;scene.add(crown)}
+function marker(x,z,title,desc,id){let g=new THREE.Group();let pole=new THREE.Mesh(new THREE.CylinderGeometry(.045,.06,2,8),mats.gold);pole.position.y=1;g.add(pole);let orb=new THREE.Mesh(new THREE.SphereGeometry(.32,16,12),mats.gold);orb.position.y=2.25;g.add(orb);let ring=new THREE.Mesh(new THREE.TorusGeometry(.65,.07,8,24),mats.gold);ring.rotation.x=Math.PI/2;ring.position.y=.12;g.add(ring);g.position.set(x,0,z);scene.add(g);targets.push({x,z,title,desc,id,mesh:g});}
+function init(){
+ scene=new THREE.Scene();scene.background=new THREE.Color(0x9bc8df);scene.fog=new THREE.Fog(0x9bc8df,48,130);
+ camera=new THREE.PerspectiveCamera(70,innerWidth/innerHeight,.1,250);
+ renderer=new THREE.WebGLRenderer({antialias:true});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;document.body.appendChild(renderer.domElement);
+ scene.add(new THREE.HemisphereLight(0xdceeff,0x536348,2));let sun=new THREE.DirectionalLight(0xfff0d2,2.1);sun.position.set(-25,40,20);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);scene.add(sun);
+ box(0,-.35,0,180,.6,180,mats.grass);
+ // central plaza and walkways
+ box(0,.01,0,13,.08,100,mats.path);box(0,.02,0,100,.08,13,mats.path);
+ box(0,.08,0,18,.12,18,mats.white);
+ building(0,-27,20,12,7,'MARKAS AKADEMI');
+ building(-28,0,14,13,5.5,'ASRAMA TARUNA');
+ building(29,0,15,13,5.5,'GEDUNG KELAS',0x3e596c);
+ building(0,30,18,12,6,'AULA UTAMA');
+ building(-29,30,13,11,4.5,'PERPUSTAKAAN');
+ building(30,-30,14,12,5,'PUSAT KEBUGARAN');
+ // parade field
+ box(0,.04,-55,42,.1,22,new THREE.MeshStandardMaterial({color:0x879b69}));
+ for(let i=-18;i<=18;i+=3)box(i,.12,-55,.08,.03,20,mats.white);
+ // obstacle course low safe props
+ for(let i=0;i<5;i++){box(-42+i*4,.45,12,.5,.9,2,mats.red);box(-42+i*4,.95,12,.5,.12,2,mats.gold)}
+ for(let i=0;i<34;i++){let x=(Math.random()-.5)*145,z=(Math.random()-.5)*145;if(Math.abs(x)<39&&Math.abs(z)<40)continue;tree(x,z)}
+ // perimeter fence
+ for(let x=-78;x<=78;x+=4){box(x,.7,-78,.18,1.4,.18,mats.white);box(x,.7,78,.18,1.4,.18,mats.white)}
+ for(let z=-78;z<=78;z+=4){box(-78,.7,z,.18,1.4,.18,mats.white);box(78,.7,z,.18,1.4,.18,mats.white)}
+ marker(0,-8,'Lapangan Utama','Kunjungan lapangan selesai. Tempat berkumpul dan upacara akademi.','field');
+ marker(-28,8,'Asrama Taruna','Kunjungi asrama untuk melihat fasilitas kehidupan taruna.','dorm');
+ marker(29,8,'Gedung Kelas','Kunjungi ruang belajar dan selesaikan tantangan wawasan.','class');
+ marker(0,39,'Aula Utama','Kunjungi aula untuk membuka tantangan kepemimpinan.','hall');
+ marker(-29,39,'Perpustakaan','Kunjungi perpustakaan untuk mendapat poin pengetahuan.','library');
+ marker(30,-20,'Pusat Kebugaran','Kunjungi pusat kebugaran untuk tantangan kebugaran aman.','gym');
+ // player
+ player=new THREE.Group();let body=new THREE.Mesh(new THREE.CapsuleGeometry(.48,.9,5,10),mats.uniform);body.position.y=1.05;body.castShadow=true;player.add(body);
+ let head=new THREE.Mesh(new THREE.SphereGeometry(.34,16,12),mats.skin);head.position.y=1.95;head.castShadow=true;player.add(head);
+ let hair=new THREE.Mesh(new THREE.SphereGeometry(.35,12,8,0,Math.PI*2,0,Math.PI*.55),mats.dark);hair.position.y=2.06;player.add(hair);
+ let cap=new THREE.Mesh(new THREE.CylinderGeometry(.36,.36,.12,16),mats.dark);cap.position.y=2.25;player.add(cap);
+ for(let s of [-1,1]){let arm=new THREE.Mesh(new THREE.CapsuleGeometry(.14,.65,4,8),mats.uniform);arm.position.set(s*.57,1.05,0);arm.rotation.z=s*.12;player.add(arm);let leg=new THREE.Mesh(new THREE.CapsuleGeometry(.17,.62,4,8),mats.dark);leg.position.set(s*.23,.35,0);player.add(leg)}
+ player.position.set(0,0,12);scene.add(player);clock=new THREE.Clock();
+ animate();
+}
+function notify(msg){$('toast').textContent=msg;$('toast').style.display='block';clearTimeout(notify.t);notify.t=setTimeout(()=>$('toast').style.display='none',2600)}
+function pangkat(){return score>=100?'Perwira Muda':score>=60?'Sersan Taruna':score>=30?'Kopral Taruna':'Calon Taruna'}
+function interact(){if(!near)return;if(done.has(near.id)){notify(near.title+' sudah dikunjungi.');return}done.add(near.id);score+=20;$('scoreline').textContent='Prestasi: '+score+' | Pangkat: '+pangkat();$('missiontext').textContent=done.size<targets.length?'Lanjutkan eksplorasi: cari penanda emas berikutnya.':'Semua lokasi akademi dikunjungi! Kamu menuntaskan tur kampus.';notify('✓ '+near.title+' selesai! +20 poin prestasi. '+near.desc);near.mesh.children[1].material=new THREE.MeshStandardMaterial({color:0x64d7a2,emissive:0x145b3b});}
+function makeRemote(){let g=new THREE.Group();let uniform=new THREE.MeshStandardMaterial({color:0x496b83});let body=new THREE.Mesh(new THREE.CapsuleGeometry(.48,.9,5,10),uniform);body.position.y=1.05;g.add(body);let head=new THREE.Mesh(new THREE.SphereGeometry(.34,12,10),mats.skin);head.position.y=1.95;g.add(head);let cap=new THREE.Mesh(new THREE.CylinderGeometry(.36,.36,.12,12),mats.gold);cap.position.y=2.25;g.add(cap);scene.add(g);return g}
+function addChat(text){let log=$('chatlog');let row=document.createElement('div');row.textContent=text;log.appendChild(row);while(log.children.length>30)log.removeChild(log.firstChild);log.scrollTop=log.scrollHeight}
+function connectOnline(){
+ const proto=location.protocol==='https:'?'wss:':'ws:';const url=window.AKADEMI_WS_URL||proto+'//'+location.host+'/ws';
+ try{socket=new WebSocket(url)}catch(e){$('online').textContent='🔴 Server belum tersedia';return}
+ socket.onopen=()=>{serverOnline=true;$('online').textContent='🟢 Online • mengirim posisi';socket.send(JSON.stringify({type:'join',name:playerName,branch:playerBranch,avatar:playerAvatar,x:player.position.x,z:player.position.z,rot:player.rotation.y}))};
+ socket.onclose=()=>{serverOnline=false;$('online').textContent='🔴 Terputus dari server';};socket.onerror=()=>{$('online').textContent='🔴 Gagal tersambung';};
+ socket.onmessage=e=>{let msg;try{msg=JSON.parse(e.data)}catch{return}if(msg.type==='snapshot'){let seen=new Set();for(let p of msg.players){if(p.id===msg.self)continue;seen.add(p.id);let g=remotePlayers.get(p.id);if(!g){g=makeRemote();remotePlayers.set(p.id,g)}g.position.set(p.x||0,0,p.z||0);g.rotation.y=p.rot||0;}for(let [id,g] of remotePlayers){if(!seen.has(id)){scene.remove(g);remotePlayers.delete(id)}}$('online').textContent='🟢 Online • '+msg.players.length+' pemain';}else if(msg.type==='chat'){addChat((msg.name||'Taruna')+': '+msg.text)}};
+}
+function sendChat(){let input=$('chatmsg'),text=input.value.trim();if(!text)return;if(socket&&socket.readyState===1){socket.send(JSON.stringify({type:'chat',text}));input.value=''}else notify('Belum terhubung ke server multiplayer.');}
+$('chatToggle').onclick=()=>{$('chatbox').style.display=$('chatbox').style.display==='block'?'none':'block'};$('sendchat').onclick=sendChat;$('chatmsg').addEventListener('keydown',e=>{if(e.key==='Enter')sendChat()});
+function animate(){
+ requestAnimationFrame(animate);let dt=Math.min(clock.getDelta(),.05);
+ if(started){
+  let forward=(keys.w?1:0)-(keys.s?1:0),side=(keys.d?1:0)-(keys.a?1:0);
+  let moving=forward||side;let speed=keys.shift?9:5.2;
+  if(moving){let dir=new THREE.Vector3(Math.sin(yaw),0,Math.cos(yaw));let right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));player.position.addScaledVector(dir,-forward*speed*dt);player.position.addScaledVector(right,side*speed*dt);player.rotation.y=yaw+(side?Math.atan2(side,Math.max(.01,forward)):0)}
+  player.position.x=THREE.MathUtils.clamp(player.position.x,-75,75);player.position.z=THREE.MathUtils.clamp(player.position.z,-75,75);
+  let camOffset=new THREE.Vector3(Math.sin(yaw)*7,4.1,Math.cos(yaw)*7);camera.position.copy(player.position).add(camOffset);camera.lookAt(player.position.x,player.position.y+1.4,player.position.z);
+  if(socket&&socket.readyState===1&&performance.now()-lastNet>100){lastNet=performance.now();socket.send(JSON.stringify({type:"move",x:player.position.x,z:player.position.z,rot:player.rotation.y}))}
+  near=null;let best=3.6;for(let t of targets){t.mesh.rotation.y+=dt*.7;let d=Math.hypot(player.position.x-t.x,player.position.z-t.z);if(d<best){best=d;near=t}}
+  $('interact').style.display=near?'block':'none';$('hint').textContent=near?'Tekan E / INTERAKSI: '+near.title:'WASD bergerak • Shift berlari • Dekati penanda emas';
+ }
+ renderer.render(scene,camera);
+}
+function start(){let name=$('pname').value.trim();if(!name){alert('Isi nama karakter terlebih dahulu.');return}let age=+$('page').value;if(age<15||age>40){alert('Usia karakter harus 15–40 tahun.');return}playerName=name;playerBranch=$('branch').value;playerAvatar=$('avatar').value;started=true;$('panel').style.display='none';$('playerline').textContent=name+' • '+playerBranch+' • Model '+playerAvatar;connectOnline();notify('Selamat datang, '+name+'! Jelajahi kampus bersama pemain lain.');}
+$('start').onclick=start;$('interact').onclick=interact;
+addEventListener('keydown',e=>{let k=e.key.toLowerCase();if(['w','a','s','d','shift'].includes(k)){keys[k]=true;e.preventDefault()}if(k==='e')interact()});
+addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+renderer?.domElement?.addEventListener('click',()=>{if(started&&innerWidth>700&&document.pointerLockElement!==renderer.domElement)renderer.domElement.requestPointerLock?.()});
+document.addEventListener('mousemove',e=>{if(document.pointerLockElement===renderer?.domElement){yaw-=e.movementX*.003;pitch=THREE.MathUtils.clamp(pitch-e.movementY*.002,-.5,.5)}});
+document.querySelectorAll('#mobile button').forEach(b=>{let k=b.dataset.key;b.addEventListener('pointerdown',e=>{e.preventDefault();keys[k]=true});['pointerup','pointerleave','pointercancel'].forEach(ev=>b.addEventListener(ev,()=>keys[k]=false))});
+let touchStart=null;renderer.domElement.addEventListener('touchstart',e=>{if(e.touches.length){touchStart={x:e.touches[0].clientX,y:e.touches[0].clientY}}},{passive:true});
+renderer.domElement.addEventListener('touchmove',e=>{if(touchStart&&e.touches.length){let t=e.touches[0];yaw-=(t.clientX-touchStart.x)*.006;touchStart={x:t.clientX,y:t.clientY}}},{passive:true});
+addEventListener('resize',()=>{if(!camera)return;camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+init();
+if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
+})();
+</script>
+</body></html>
